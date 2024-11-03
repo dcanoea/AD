@@ -28,7 +28,7 @@ public class AccesoAleatorioEscritura {
             //Escribimos 5 registros de ejemplo con un tamaño fijo
             //Cada registro contiene un identificar (int) y un saldo (double)
             for (int i = 0; i < 5; i++) {
-                raf.writeInt(i+1); //Escribimos el identificar (4 bytes)
+                raf.writeInt(i+1); //Escribimos el identificador (4 bytes)
                 raf.writeDouble(100.50 * (i+1)); //Escribimos el saldo (8 bytes)
             }
             
