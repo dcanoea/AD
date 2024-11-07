@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<empleados>
+    <empleado codigo="1">
+        <nombre>David Cano</nombre>
+        <direccion>Calle Niagara</direccion>
+        <salario>1000.0</salario>
+        <comision>100.0</comision>
+    </empleado>
+    <empleado codigo="2">
+        <nombre>Miguel Cano</nombre>
+        <direccion>Avda Martinez de Velasco</direccion>
+        <salario>3000.0</salario>
+        <comision>300.0</comision>
+    </empleado>
+    <empleado codigo="3">
+        <nombre>Jimena Cornejo</nombre>
+        <direccion>Calle Huertas</direccion>
+        <salario>2222.0</salario>
+        <comision>123.0</comision>
+    </empleado>
+    <empleado codigo="4">
+        <nombre>Juan Carlos Carito</nombre>
+        <direccion>Avda Monegros</direccion>
+        <salario>4121.0</salario>
+        <comision>10.0</comision>
+    </empleado>
+    <empleado codigo="5">
+        <nombre>Teo Cancor</nombre>
+        <direccion>Avda Ramon y Cajal</direccion>
+        <salario>300.0</salario>
+        <comision>5.0</comision>
+    </empleado>
+</empleados>

@@ -35,7 +35,7 @@ public class CrearArchivoDAT {
         try {
             // Creamos el RandomAccesFile con permisos de lectura y escritura (RW)
             RandomAccessFile raf = new RandomAccessFile(file, "rw");
-            
+
             //Escribimos cada empleado en el archivo mediante el método escribirEmpleado
             empleado1.escribirEmpleado(raf);
             empleado2.escribirEmpleado(raf);
@@ -44,7 +44,18 @@ public class CrearArchivoDAT {
             empleado5.escribirEmpleado(raf);
 
             raf.close();
-            System.out.println("Empleados escritos en el fichero " + file);
+            System.out.println("Empleados escritos en el fichero " + file + "\n\n\n");
+
+            //----------------------------------------------------------------------------------------------------------
+            // Lectura del archivo para comprobación
+            RandomAccessFile rafLectura = new RandomAccessFile(file, "r");
+            //Mediante un puntero comprobamos si se ha llegado al final del fichero. Si no, sigue leyendo
+            while (rafLectura.getFilePointer() < file.length()) {
+                Empleado empleado = Empleado.leerEmpleado(rafLectura);
+                System.out.println(empleado);
+            }
+            rafLectura.close();
+            
         } catch (FileNotFoundException ex) {
             System.out.println("Fichero no encontrado");
             Logger.getLogger(CrearArchivoDAT.class.getName()).log(Level.SEVERE, null, ex);
