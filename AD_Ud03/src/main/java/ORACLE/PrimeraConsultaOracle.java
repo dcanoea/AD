@@ -17,19 +17,20 @@ import java.sql.Statement;
 import java.sql.*;
 
 public class PrimeraConsultaOracle {
+
     public static void main(String[] args) {
+        String urljdbc = "jdbc:oracle:thin:@localhost:1521:free";
+        String usuario = "C##user1";
+        String pass = "user1";
+
         try {
-            String urljdbc = "jdbc:oracle:thin:@localhost:1521:free";
-            String usuario = "C##user1";
-            String pass = "user1";
-            
             // Establecemos la conexión con la base de datos
             Connection conexion = DriverManager.getConnection(urljdbc, usuario, pass);
             System.out.println("Conexión establecida a BBDD");
 
             // Creamos el objeto Statement
             Statement sentencia = conexion.createStatement();
-            
+
             // Ejecutamos la consulta
             String sql = "SELECT * FROM baloncesto";
             ResultSet rs = sentencia.executeQuery(sql);
@@ -48,11 +49,13 @@ public class PrimeraConsultaOracle {
                     System.out.println("  Equipo: " + rs.getString(7) + "\n");
                 }
             }
-            
+
             rs.close();
             sentencia.close();
             conexion.close();
+            
         } catch (SQLException e) {
+            System.out.println("Error en BBDD");
             e.printStackTrace();
         }
     }

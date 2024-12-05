@@ -4,6 +4,7 @@
  */
 package SQL;
 
+import ORACLE.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -13,36 +14,35 @@ import java.sql.Statement;
  *
  * @author David Cano Escario
  */
-public class Insert_SQL {
+public class Delete_SQL {
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        try {
-            //Crea la conexion
-            String urljdbc = "jdbc:mysql://localhost:3306/test";
-            Connection conexion = DriverManager.getConnection(urljdbc, "root", "");
-            System.out.println("Conexión establecida");
 
-            //Crea la sentencia
+        String url = "jdbc:mysql://localhost:3306/test";
+        String usuario = "root";
+        String contrasena = "";
+
+        try (Connection conexion = DriverManager.getConnection(url, usuario, contrasena)) {
+            System.out.println("Conexion exitosa a MySQL.");
+
             Statement stm = conexion.createStatement();
 
-            //String de la sentencia sql
-            String sql = "INSERT INTO baloncesto VALUES(6, 'Allen', 'Iverson', 183, 49, 'Escolta', 'Philadelphia 76ers')";
+            //Sentencia sql
+            String sql = "delete from baloncesto where ID = 6";
 
-            //Ejecuta el INSERT. Devuelve 1, el número de filas afectadas
-            System.out.println("nº filas agregadas: " + stm.executeUpdate(sql));
+            //Ejecuta la sentencia. Devuelve el número de filas afectadas
+            System.out.println("nº filas borradas: " + stm.executeUpdate(sql));
 
-            //Cerrar sentencia
             stm.close();
-            //Cerrar conexion
             conexion.close();
 
         } catch (SQLException e) {
             System.out.println("Error en BBDD");
             e.printStackTrace();
         }
-
     }
+
 }

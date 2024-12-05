@@ -7,6 +7,7 @@ package SQL;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+
 /**
  *
  * @author David Cano Escario
@@ -23,10 +24,11 @@ public class Conector_MySQL {
 
         try (Connection conexion = DriverManager.getConnection(url, usuario, contrasena)) {
             System.out.println("Conexion exitosa a MySQL.");
-            
-            
-            
+
+            conexion.close();
+
         } catch (SQLException e) {
+            System.out.println("Error en BBDD");
             e.printStackTrace();
         }
     }

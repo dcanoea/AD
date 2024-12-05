@@ -39,15 +39,16 @@ public class PrimeraConsultaSQL {
                 System.out.println("  Edad: " + rs.getInt(5));
                 System.out.println("  Posici�n: " + rs.getString(6));
                 System.out.println("  Equipo: " + rs.getString(7) + "\n");
-                
+
                 //Lo mismo en una l�nea
                 //System.out.printf("%d, %s, %s, %d, %d, %s, %s \n", rs.getInt(1), rs.getString(2), rs.getString(3), rs.getInt(4), rs.getInt(5), rs.getString(6), rs.getString(7));
             }
             rs.close(); // Cerrar ResultSet
             sentencia.close(); // Cerrar Statement
             conexion.close(); // Cerrar conexi�n
-        } catch (SQLException cn) {
-            cn.printStackTrace();
+        } catch (SQLException e) {
+            System.out.println("Error en BBDD");
+            e.printStackTrace();
         }
     }
 }

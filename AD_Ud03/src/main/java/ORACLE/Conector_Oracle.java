@@ -6,6 +6,7 @@ package ORACLE;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 
 /**
  *
@@ -17,16 +18,22 @@ public class Conector_Oracle {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+
+        String urljdbc = "jdbc:oracle:thin:@localhost:1521:free";
+        String usuario = "C##user1";
+        String pass = "user1";
+
         try {
-            String urljdbc = "jdbc:oracle:thin:@localhost:1521:free";
-            Connection conexion = DriverManager.getConnection(urljdbc,"C##user1","user1");
-            
+            Connection conexion = DriverManager.getConnection(urljdbc, usuario, pass);
             System.out.println("Conexión establecida");
-        } catch (Exception e) {
-            System.out.println("No se ha podido conectar a BBDD");
+
+            conexion.close();
+
+        } catch (SQLException e) {
+            System.out.println("Error en BBDD");
+            e.printStackTrace();
         }
 
-        
     }
 
 }
