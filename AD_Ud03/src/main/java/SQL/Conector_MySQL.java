@@ -22,7 +22,8 @@ public class Conector_MySQL {
         String usuario = "root";
         String contrasena = "";
 
-        try (Connection conexion = DriverManager.getConnection(url, usuario, contrasena)) {
+        try {
+            Connection conexion = DriverManager.getConnection(url, usuario, contrasena);
             System.out.println("Conexion exitosa a MySQL.");
 
             conexion.close();
