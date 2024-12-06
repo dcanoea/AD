@@ -10,7 +10,7 @@ import java.sql.*;
  *
  * @author David Cano Escario
  */
-public class PrimeraConsultaSQL {
+public class ConsultaSQL {
 
     /**
      * @param args the command line arguments
@@ -26,7 +26,7 @@ public class PrimeraConsultaSQL {
             // creamos el objeto Statement
             Statement sentencia = conexion.createStatement();
             //ejecutamos la consulta
-            String sql = "SELECT * FROM baloncesto";
+            String sql = "SELECT * FROM baloncesto ORDER BY id";
             ResultSet rs = sentencia.executeQuery(sql);
             // Recorremos el resultado para visualizar cada fila     
 

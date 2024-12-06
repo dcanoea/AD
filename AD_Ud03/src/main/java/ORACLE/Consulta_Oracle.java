@@ -16,7 +16,7 @@ import java.sql.Statement;
  */
 import java.sql.*;
 
-public class PrimeraConsultaOracle {
+public class Consulta_Oracle {
 
     public static void main(String[] args) {
         String urljdbc = "jdbc:oracle:thin:@localhost:1521:free";
@@ -32,7 +32,7 @@ public class PrimeraConsultaOracle {
             Statement sentencia = conexion.createStatement();
 
             // Ejecutamos la consulta
-            String sql = "SELECT * FROM baloncesto";
+            String sql = "SELECT * FROM baloncesto ORDER BY id";
             ResultSet rs = sentencia.executeQuery(sql);
 
             // Comprobamos si hay datos
