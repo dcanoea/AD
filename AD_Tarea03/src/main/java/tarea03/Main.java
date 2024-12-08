@@ -17,6 +17,7 @@ public class Main {
         ConexionBBDD con = new ConexionBBDD();
         GestionBBDD gestion = new GestionBBDD();
         
-        gestion.mostrarVuelos();   
+        //gestion.mostrarVuelos();   
+        gestion.joinCOD_VUELO();
     }
 }
