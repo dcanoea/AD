@@ -8,6 +8,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -46,8 +49,8 @@ public class GestionBBDD {
 
     public void joinCOD_VUELO() {
         try {
-            Connection con = conexion.conectar();      
-            
+            Connection con = conexion.conectar();
+
             String sentenciaSQL = "SELECT vuelos.COD_VUELO, \n"
                     + "		vuelos.DESTINO, \n"
                     + "         pasajeros.NUM, \n"
@@ -58,21 +61,49 @@ public class GestionBBDD {
                     + "WHERE pasajeros.COD_VUELO = ?";
             PreparedStatement pstmt = con.prepareStatement(sentenciaSQL);
             pstmt.setString(1, "AI-1289-9");
-   
+
             ResultSet rs = pstmt.executeQuery();
             System.out.println("Sentencia ejecutada\n");
-            while(rs.next()){
+            while (rs.next()) {
                 System.out.println("Codigo Vuelo -> " + rs.getString(1));
                 System.out.println("Destino -> " + rs.getString(2));
                 System.out.println("Num Pasajero -> " + rs.getInt(3));
                 System.out.println("Tipo plaza -> " + rs.getString(4));
                 System.out.println("Fumador -> " + rs.getString(5) + "\n");
-            }          
-            
+            }
+
             rs.close();
             pstmt.close();
-            conexion.desconectar();         
+            conexion.desconectar();
         } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public void insertarVuelo(String codVuelo, Timestamp horaSalida, String destino, 
+            String procedencia, int plzFum, int plzNoFum, int plzTur, int plzPr) {
+        try {
+            Connection con = conexion.conectar();
+
+            String sentenciaSQL = "INSERT INTO vuelos VALUES(?,?,?,?,?,?,?,?)";
+            PreparedStatement pstmt = con.prepareStatement(sentenciaSQL);
+            pstmt.setString(1, codVuelo);
+            pstmt.setTimestamp(2, horaSalida);
+            pstmt.setString(3, destino);
+            pstmt.setString(4, procedencia);
+            pstmt.setInt(5, plzFum);
+            pstmt.setInt(6, plzNoFum);
+            pstmt.setInt(7, plzTur);
+            pstmt.setInt(8, plzPr);
+
+            pstmt.executeUpdate();
+            System.out.println("Vuelo insertado");
+            
+            pstmt.close();
+            conexion.desconectar();
+            
+        } catch (SQLException ex) {
+            System.out.println("Vuelo no insertado");
             ex.printStackTrace();
         }
     }

@@ -4,6 +4,9 @@
  */
 package tarea03;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+
 /**
  *
  * @author David Cano Escario
@@ -18,6 +21,8 @@ public class Main {
         GestionBBDD gestion = new GestionBBDD();
         
         //gestion.mostrarVuelos();   
-        gestion.joinCOD_VUELO();
+        //gestion.joinCOD_VUELO();
+        //gestion.insertarVuelo("AA-1234-5",Timestamp.valueOf("2024-12-24 22:10:00") , "LIMA", "PARIS", 50, 250, 200, 80);
+        
     }
 }
