@@ -23,6 +23,8 @@ public class Main {
         //gestion.mostrarVuelos();   
         //gestion.joinCOD_VUELO();
         //gestion.insertarVuelo("AA-1234-5",Timestamp.valueOf("2024-12-24 22:10:00") , "LIMA", "PARIS", 50, 250, 200, 80);
-        
+        //gestion.borrarVuelo("AA-1234-5");
+        //gestion.modificarFumadores();
+        //gestion.crearTablaReservas();
     }
 }

@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -80,7 +81,7 @@ public class GestionBBDD {
         }
     }
 
-    public void insertarVuelo(String codVuelo, Timestamp horaSalida, String destino, 
+    public void insertarVuelo(String codVuelo, Timestamp horaSalida, String destino,
             String procedencia, int plzFum, int plzNoFum, int plzTur, int plzPr) {
         try {
             Connection con = conexion.conectar();
@@ -98,12 +99,76 @@ public class GestionBBDD {
 
             pstmt.executeUpdate();
             System.out.println("Vuelo insertado");
-            
+
             pstmt.close();
             conexion.desconectar();
-            
+
         } catch (SQLException ex) {
             System.out.println("Vuelo no insertado");
+            ex.printStackTrace();
+        }
+    }
+
+    public void borrarVuelo(String codVuelo) {
+        try {
+            Connection con = conexion.conectar();
+            String sentenciaSQL = "DELETE FROM vuelos WHERE COD_VUELO = ?";
+            PreparedStatement pstmt = con.prepareStatement(sentenciaSQL);
+            pstmt.setString(1, codVuelo);
+
+            pstmt.executeUpdate();
+            System.out.println("Vuelo " + codVuelo + " borrado");
+
+            pstmt.close();
+            con.close();
+            conexion.desconectar();
+        } catch (SQLException ex) {
+            System.out.println("No se ha podido borrar el vuelo " + codVuelo);
+            ex.printStackTrace();
+        }
+    }
+
+    public void modificarFumadores() {
+        try {
+            Connection con = conexion.conectar();
+
+            String sentenciaSQL = "UPDATE VUELOS SET PLAZAS_NO_FUMADOR = PLAZAS_NO_FUMADOR + PLAZAS_FUMADOR, PLAZAS_FUMADOR = 0;";
+
+            Statement stmt = con.prepareStatement(sentenciaSQL);
+            stmt.executeUpdate(sentenciaSQL);
+
+            System.out.println("Modificados vuelos a NO FUMADORES");
+
+            stmt.close();
+            con.close();
+            conexion.desconectar();
+        } catch (SQLException ex) {
+            System.out.println("No se ha podido hacer la modificación");
+            ex.printStackTrace();
+        }
+    }
+
+    public void crearTablaReservas() {
+        try {
+            Connection con = conexion.conectar();
+
+            String sentenciaSQL = "CREATE TABLE reservas ("
+                    + "NUM_PASAJERO INT(7) PRIMARY KEY,"
+                    + "COD_VUELO VARCHAR(10),"
+                    + "FECHA_RESERVA DATETIME,"
+                    + "ASIENTO VARCHAR(5),"
+                    + "FOREIGN KEY (NUM_PASAJERO) REFERENCES pasajeros(NUM),"
+                    + "FOREIGN KEY (COD_VUELO) REFERENCES vuelos(COD_VUELO));";
+
+            PreparedStatement pstmt = con.prepareStatement(sentenciaSQL);
+            pstmt.executeUpdate();
+            System.out.println("Tabla RESERVAS creada");
+            
+            pstmt.close();
+            con.close();
+            conexion.desconectar();
+        } catch (SQLException ex) {
+            System.out.println("Error al crear la tabla");
             ex.printStackTrace();
         }
     }
