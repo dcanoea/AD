@@ -153,22 +153,90 @@ public class GestionBBDD {
             Connection con = conexion.conectar();
 
             String sentenciaSQL = "CREATE TABLE reservas ("
-                    + "NUM_PASAJERO INT(7) PRIMARY KEY,"
+                    + "NUM_PASAJERO INT(7),"
                     + "COD_VUELO VARCHAR(10),"
                     + "FECHA_RESERVA DATETIME,"
                     + "ASIENTO VARCHAR(5),"
+                    + "PRIMARY KEY (NUM_PASAJERO, COD_VUELO" //Clave primaria conjunta
                     + "FOREIGN KEY (NUM_PASAJERO) REFERENCES pasajeros(NUM),"
                     + "FOREIGN KEY (COD_VUELO) REFERENCES vuelos(COD_VUELO));";
 
             PreparedStatement pstmt = con.prepareStatement(sentenciaSQL);
             pstmt.executeUpdate();
             System.out.println("Tabla RESERVAS creada");
-            
+
             pstmt.close();
             con.close();
             conexion.desconectar();
         } catch (SQLException ex) {
             System.out.println("Error al crear la tabla");
+            ex.printStackTrace();
+        }
+    }
+
+    public void crearReserva(int numPasajero, String codVuelo, Timestamp fechaReserva, String asiento) {
+        try {
+            Connection con = conexion.conectar();
+
+            String sentenciaSQL = "INSERT INTO reservas VALUES(?,?,?,?)";
+            PreparedStatement pstmt = con.prepareStatement(sentenciaSQL);
+            pstmt.setInt(1, numPasajero);
+            pstmt.setString(2, codVuelo);
+            pstmt.setTimestamp(3, fechaReserva);
+            pstmt.setString(4, asiento);
+
+            pstmt.executeUpdate();
+            System.out.println("Reserva creada");
+
+            pstmt.close();
+            con.close();
+            conexion.desconectar();
+
+        } catch (SQLException ex) {
+            System.out.println("Reserva no creada");
+            ex.printStackTrace();
+        }
+    }
+
+    public void consultaTresTablas() {
+        try {
+            Connection con = conexion.conectar();
+
+            String sentenciaSQL = ""
+                    + "SELECT DISTINCT "
+                    + "    r.NUM_PASAJERO AS 'Numero Pasajero',"
+                    + "    p.TIPO_PLAZA AS 'Tipo de Plaza',"
+                    + "    r.COD_VUELO AS 'Codigo de Vuelo',"
+                    + "    v.PROCEDENCIA AS 'Procedencia',"
+                    + "    v.DESTINO AS 'Destino',"
+                    + "    v.HORA_SALIDA AS 'Fecha salida',"
+                    + "    r.FECHA_RESERVA AS 'Fecha de Reserva',"
+                    + "    r.ASIENTO AS 'Asiento Asignado' "
+                    + "FROM reservas r "
+                    + "JOIN pasajeros p ON r.NUM_PASAJERO = p.NUM "
+                    + "JOIN vuelos v ON r.COD_VUELO = v.COD_VUELO;";
+
+            PreparedStatement pstmt = con.prepareStatement(sentenciaSQL);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()){
+                System.out.println("Numero Pasajero: " + rs.getInt(1));
+                System.out.println("Tipo de plaza: " + rs.getString(2));
+                System.out.println("Codigo de Vuelo: " + rs.getString(3));
+                System.out.println("Procedencia: " + rs.getString(4));
+                System.out.println("Destino: " + rs.getString(5));
+                System.out.println("Fecha salida: " + rs.getTimestamp(6));
+                System.out.println("Fecha de reserva: " + rs.getTimestamp(7));
+                System.out.println("Asiento: " + rs.getString(8) + "\n");
+            }
+            
+            
+            rs.close();
+            pstmt.close();
+            con.close();
+            conexion.desconectar();
+        } catch (SQLException ex) {
+            System.out.println("Error en consulta");
             ex.printStackTrace();
         }
     }

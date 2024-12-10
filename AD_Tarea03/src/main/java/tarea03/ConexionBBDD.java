@@ -31,9 +31,9 @@ public class ConexionBBDD {
     public static void desconectar(){
         try {
             conexion.close();
-            System.out.println("Desconectado de BBDD");
+            System.out.println("Desconectado de BBDD\n");
         } catch (SQLException ex) {
-            System.out.println("Error al desconectar BBDD");
+            System.out.println("Error al desconectar BBDD\n");
             ex.printStackTrace();
         }
     }

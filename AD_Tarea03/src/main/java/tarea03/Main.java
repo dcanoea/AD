@@ -26,5 +26,10 @@ public class Main {
         //gestion.borrarVuelo("AA-1234-5");
         //gestion.modificarFumadores();
         //gestion.crearTablaReservas();
+        //gestion.crearReserva(123, "IB-SP-4567", Timestamp.valueOf(LocalDateTime.now()), "01-A");
+        //gestion.crearReserva(133, "AI-1289-9", Timestamp.valueOf(LocalDateTime.now()), "14-B");
+        //gestion.crearReserva(137, "FR-DC-4667", Timestamp.valueOf(LocalDateTime.now()), "124-C");
+
+        gestion.consultaTresTablas();
     }
 }
