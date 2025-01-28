@@ -16,22 +16,28 @@ import jakarta.persistence.Table;
  * @author David Cano Escario
  */
 
+import jakarta.persistence.*;
+import java.util.List;
+
 @Entity
-@Table(name ="DEPT")//Nombre de la tabla
+@Table(name = "DEPT") // Nombre de la tabla
 public class Departamento {
-   
-    //PROPIEDADES DE LA TABLA 
-    @Id //Primary Key
+
+    @Id // Primary Key
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "DEPTNO") //Columna DEPTNO
+    @Column(name = "DEPTNO") // Columna DEPTNO
     private int numeroDep;
-    
-    @Column(name = "DNAME") //Columna DNAME
+
+    @Column(name = "DNAME") // Columna DNAME
     private String nombreDep;
-    
-    @Column(name = "LOC") //Columna LOC
+
+    @Column(name = "LOC") // Columna LOC
     private String localizacionDep;
 
+    @OneToMany(mappedBy = "departamento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Empleado> empleados;
+
+    // Constructores
     public Departamento() {
     }
 
@@ -41,6 +47,7 @@ public class Departamento {
         this.localizacionDep = localizacionDep;
     }
 
+    // Getters y Setters
     public int getNumeroDep() {
         return numeroDep;
     }
@@ -65,11 +72,23 @@ public class Departamento {
         this.localizacionDep = localizacionDep;
     }
 
+    public List<Empleado> getEmpleados() {
+        return empleados;
+    }
+
+    public void setEmpleados(List<Empleado> empleados) {
+        this.empleados = empleados;
+    }
+
     @Override
     public String toString() {
-        return "Departamento{" + "numeroDep=" + numeroDep + ", nombreDep=" + nombreDep + ", localizacionDep=" + localizacionDep + '}';
-    } 
-    
+        return "Departamento{" +
+                "numeroDep=" + numeroDep +
+                ", nombreDep='" + nombreDep + '\'' +
+                ", localizacionDep='" + localizacionDep + '\'' +
+                '}';
+    }
 }
+
 
 

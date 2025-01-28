@@ -16,51 +16,65 @@ import java.util.Date;
  *
  * @author David Cano Escario
  */
+import jakarta.persistence.*;
+import java.util.Date;
+import java.util.List;
+
 @Entity
-@Table(name = "EMP") //Nombre de la tabla
+@Table(name = "EMP") // Nombre de la tabla
 public class Empleado {
 
-    //PROPIEDADES DE LA TABLA
-    @Id //Primary key
+    @Id // Primary key
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "EMPNO") //Columna EMPNO
+    @Column(name = "EMPNO") // Columna EMPNO
     private int numeroEmp;
 
-    @Column(name = "ENAME") //Columna ENAME
+    @Column(name = "ENAME") // Columna ENAME
     private String nombreEmp;
 
-    @Column(name = "JOB") //Columna JOB
+    @Column(name = "JOB") // Columna JOB
     private String puestoTrabajoEmp;
 
-    @Column(name = "MGR") //Columna MGR
-    private Integer managerEmp;
-
-    @Column(name = "HIREDATE") //Columna HIREDATE
+    @Temporal(TemporalType.DATE) // Para manejar fechas
+    @Column(name = "HIREDATE") // Columna HIREDATE
     private Date fechaInicioEmp;
 
-    @Column(name = "SAL") //Columna SAL
+    @Column(name = "SAL") // Columna SAL
     private Double salarioEmp;
 
-    @Column(name = "COMM") //Columna COMM
+    @Column(name = "COMM") // Columna COMM
     private Double comisionEmp;
 
-    @Column(name = "DEPTNO") //Columna DEPTNO
-    private int numDepartamentoEmp;
+    // Relación con Departamento
+    @ManyToOne
+    @JoinColumn(name = "DEPTNO") // Relaciona con DEPTNO en EMP
+    private Departamento departamento;
 
+    // Relación con el Jefe (manager)
+    @ManyToOne
+    @JoinColumn(name = "MGR") // Relaciona con MGR en EMP
+    private Empleado manager;
+
+    // Relación inversa: Subordinados
+    @OneToMany(mappedBy = "manager", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Empleado> subordinados;
+
+    // Constructores
     public Empleado() {
     }
 
-    public Empleado(int numeroEmp, String nombreEmp, String puestoTrabajoEmp, Integer managerEmp, Date fechaInicioEmp, Double salarioEmp, Double comisionEmp, int numDepartamentoEmp) {
+    public Empleado(int numeroEmp, String nombreEmp, String puestoTrabajoEmp, Date fechaInicioEmp, Double salarioEmp, Double comisionEmp, Departamento departamento, Empleado manager) {
         this.numeroEmp = numeroEmp;
         this.nombreEmp = nombreEmp;
         this.puestoTrabajoEmp = puestoTrabajoEmp;
-        this.managerEmp = managerEmp;
         this.fechaInicioEmp = fechaInicioEmp;
         this.salarioEmp = salarioEmp;
         this.comisionEmp = comisionEmp;
-        this.numDepartamentoEmp = numDepartamentoEmp;
+        this.departamento = departamento;
+        this.manager = manager;
     }
 
+    // Getters y Setters
     public int getNumeroEmp() {
         return numeroEmp;
     }
@@ -83,14 +97,6 @@ public class Empleado {
 
     public void setPuestoTrabajoEmp(String puestoTrabajoEmp) {
         this.puestoTrabajoEmp = puestoTrabajoEmp;
-    }
-
-    public Integer getManagerEmp() {
-        return managerEmp;
-    }
-
-    public void setManagerEmp(Integer managerEmp) {
-        this.managerEmp = managerEmp;
     }
 
     public Date getFechaInicioEmp() {
@@ -117,21 +123,42 @@ public class Empleado {
         this.comisionEmp = comisionEmp;
     }
 
-    public int getNumDepartamentoEmp() {
-        return numDepartamentoEmp;
+    public Departamento getDepartamento() {
+        return departamento;
     }
 
-    public void setNumDepartamentoEmp(int numDepartamentoEmp) {
-        this.numDepartamentoEmp = numDepartamentoEmp;
+    public void setDepartamento(Departamento departamento) {
+        this.departamento = departamento;
+    }
+
+    public Empleado getManager() {
+        return manager;
+    }
+
+    public void setManager(Empleado manager) {
+        this.manager = manager;
+    }
+
+    public List<Empleado> getSubordinados() {
+        return subordinados;
+    }
+
+    public void setSubordinados(List<Empleado> subordinados) {
+        this.subordinados = subordinados;
     }
 
     @Override
     public String toString() {
-        return "Empleado{" + "numeroEmp=" + numeroEmp + ", nombreEmp=" + nombreEmp + ", puestoTrabajoEmp=" + puestoTrabajoEmp + ", managerEmp=" + managerEmp + ", fechaInicioEmp=" + fechaInicioEmp + ", salarioEmp=" + salarioEmp + ", comisionEmp=" + comisionEmp + ", numDepartamentoEmp=" + numDepartamentoEmp + '}';
+        return "Empleado{" +
+                "numeroEmp=" + numeroEmp +
+                ", nombreEmp='" + nombreEmp + '\'' +
+                ", puestoTrabajoEmp='" + puestoTrabajoEmp + '\'' +
+                ", fechaInicioEmp=" + fechaInicioEmp +
+                ", salarioEmp=" + salarioEmp +
+                ", comisionEmp=" + comisionEmp +
+                ", departamento=" + (departamento != null ? departamento.getNombreDep() : "N/A") +
+                ", manager=" + (manager != null ? manager.getNombreEmp() : "N/A") +
+                '}';
     }
-
-    
-
-
-    
 }
+

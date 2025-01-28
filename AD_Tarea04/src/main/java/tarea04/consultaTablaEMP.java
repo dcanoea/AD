@@ -20,7 +20,10 @@ public class consultaTablaEMP {
      */
     public static void main(String[] args) {
 
-        SessionFactory miFactory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Empleado.class).buildSessionFactory();
+        SessionFactory miFactory = new Configuration().configure("hibernate.cfg.xml")
+                .addAnnotatedClass(Empleado.class)
+                .addAnnotatedClass(Departamento.class)
+                .buildSessionFactory();
 
         Session miSession = miFactory.openSession();
 

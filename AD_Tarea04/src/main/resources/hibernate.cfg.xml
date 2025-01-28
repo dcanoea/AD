@@ -6,5 +6,11 @@
         <property name="hibernate.connection.password">user1</property>
         <property name="hibernate.dialect">org.hibernate.dialect.OracleDialect</property>
         <property name="hibernate.show_sql">true</property>
+        <property name="hibernate.format_sql">true</property> <!-- Formatea la salida por consola del código SQL -->
+
+        
+        <!-- Clases anotadas -->
+        <mapping class="tarea04.Departamento"/>
+        <mapping class="tarea04.Empleado"/>
     </session-factory>
 </hibernate-configuration>

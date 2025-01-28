@@ -20,7 +20,11 @@ public class consultaTablaDEPT {
      */
     public static void main(String[] args) {
 
-        SessionFactory miFactory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Departamento.class).buildSessionFactory();
+        SessionFactory miFactory = new Configuration()
+                .configure("hibernate.cfg.xml")
+                .addAnnotatedClass(Departamento.class)
+                .addAnnotatedClass(Empleado.class)
+                .buildSessionFactory();
 
         Session miSession = miFactory.openSession();
 
@@ -32,9 +36,9 @@ public class consultaTablaDEPT {
 
             System.out.println("------------------------------------\nDepartamentos:");
             // consulta de departamentos
-            List<Departamento> listaDepartamentos = miSession.createQuery("from Departamento").getResultList();
+            List<Departamento> listaDepartamentos = miSession.createQuery("from Departamento", Departamento.class).getResultList();
             //mostrar los departamentos
-            for(Departamento dep : listaDepartamentos){
+            for (Departamento dep : listaDepartamentos) {
                 System.out.println(dep);
             }
             miSession.close();
