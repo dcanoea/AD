@@ -27,8 +27,8 @@ public class TiendaJSONB {
         //listarProductos();
         //agregarCampoJSONB();
         //listarProductos();
-        actualizarCampoAnidadoJSONB();
-        //listarProductos();
+        //actualizarCampoAnidadoJSONB();
+        listarProductos();
     }
 
     public static void insertarProductos() {
