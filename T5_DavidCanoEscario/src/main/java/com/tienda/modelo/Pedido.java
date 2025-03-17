@@ -27,8 +27,8 @@ public class Pedido {
     @Column(nullable = false)
     private String cliente;
 
-    @Column(nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime fecha;
+    @Column(nullable = false)
+    private LocalDateTime fecha = LocalDateTime.now();
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")

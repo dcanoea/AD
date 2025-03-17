@@ -7,18 +7,15 @@ package com.tienda.test;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.tienda.modelo.Pedido;
-import com.tienda.modelo.PedidoProducto;
-import com.tienda.modelo.Producto;
 import com.tienda.util.HibernateUtil;
+import jakarta.persistence.Query;
 import org.hibernate.Session;
-
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
 
 /**
  *
@@ -74,6 +71,8 @@ public class MenuInteractivo {
 
     private static void insertarPedidoConProductos(Session session, Scanner scanner) {
         try {
+            session.beginTransaction(); // Iniciar transacción
+
             // Datos del pedido
             System.out.print("Nombre del cliente: ");
             String cliente = scanner.nextLine();
@@ -84,13 +83,20 @@ public class MenuInteractivo {
             String observaciones = scanner.nextLine();
             detalles.put("observaciones", observaciones);
 
-            // Crear pedido
-            Pedido pedido = new Pedido(cliente, detalles);
+            // Convertir detalles a JSON
+            ObjectMapper objectMapper = new ObjectMapper();
+            String detallesJson = objectMapper.writeValueAsString(detalles);
 
-            // Guardar el pedido para obtener su ID
-            session.beginTransaction();
-            session.persist(pedido);
-            session.getTransaction().commit();
+            // Insertar el pedido usando SQL
+            String sqlInsertPedido = "INSERT INTO pedidos (cliente, detalles) VALUES (:cliente, :detalles)";
+            session.createNativeQuery(sqlInsertPedido)
+                    .setParameter("cliente", cliente)
+                    .setParameter("detalles", detallesJson)
+                    .executeUpdate();
+
+            // Obtener el ID del pedido recién insertado
+            String sqlGetLastPedidoId = "SELECT currval('pedidos_id_seq')";
+            Long pedidoId = (Long) session.createNativeQuery(sqlGetLastPedidoId).getSingleResult();
 
             // Crear dos productos
             for (int i = 1; i <= 2; i++) {
@@ -116,31 +122,35 @@ public class MenuInteractivo {
                 String modelo = scanner.nextLine();
                 especificaciones.put("modelo", modelo);
 
-                // Crear producto
-                Producto producto = new Producto(nombre, precio, especificaciones);
+                // Convertir especificaciones a JSON
+                String especificacionesJson = objectMapper.writeValueAsString(especificaciones);
 
-                // Guardar el producto para obtener su ID
-                session.beginTransaction();
-                session.persist(producto);
-                session.getTransaction().commit();
+                // Insertar el producto usando SQL
+                String sqlInsertProducto = "INSERT INTO productos (nombre, precio, especificaciones) VALUES (:nombre, :precio, :especificaciones)";
+                session.createNativeQuery(sqlInsertProducto)
+                        .setParameter("nombre", nombre)
+                        .setParameter("precio", precio)
+                        .setParameter("especificaciones", especificacionesJson)
+                        .executeUpdate();
+
+                // Obtener el ID del producto recién insertado
+                String sqlGetLastProductoId = "SELECT currval('productos_id_seq')";
+                Long productoId = (Long) session.createNativeQuery(sqlGetLastProductoId).getSingleResult();
 
                 // Asociar producto al pedido
-                PedidoProducto pedidoProducto = new PedidoProducto(pedido, producto, cantidad);
-
-                // Actualizar las colecciones en Pedido y Producto
-                pedido.getProductos().add(pedidoProducto);
-                producto.getPedidos().add(pedidoProducto);
-
-                // Guardar la relación PedidoProducto
-                session.beginTransaction();
-                session.persist(pedidoProducto);
-                session.getTransaction().commit();
+                String sqlInsertPedidoProducto = "INSERT INTO pedido_producto (pedido_id, producto_id, cantidad) VALUES (:pedidoId, :productoId, :cantidad)";
+                session.createNativeQuery(sqlInsertPedidoProducto)
+                        .setParameter("pedidoId", pedidoId)
+                        .setParameter("productoId", productoId)
+                        .setParameter("cantidad", cantidad)
+                        .executeUpdate();
             }
 
+            session.getTransaction().commit(); // Confirmar transacción
             System.out.println("Pedido y productos creados exitosamente.");
         } catch (Exception e) {
             if (session.getTransaction() != null) {
-                session.getTransaction().rollback();
+                session.getTransaction().rollback(); // Revertir en caso de error
             }
             System.err.println("Error al insertar el pedido: " + e.getMessage());
             e.printStackTrace();
@@ -171,34 +181,62 @@ public class MenuInteractivo {
 
     private static void modificarJsonbDePedido(Session session, Long id, Scanner scanner) {
         try {
-            session.beginTransaction();
-            Pedido pedido = session.get(Pedido.class, id);
-            if (pedido != null) {
-                JsonNode detalles = pedido.getDetalles();
-                System.out.println("\nCampos disponibles en el JSONB del pedido:");
-                detalles.fieldNames().forEachRemaining(System.out::println);
+            session.beginTransaction(); // Iniciar transacción
 
-                System.out.print("Ingrese el nombre del campo que desea modificar: ");
-                String campo = scanner.nextLine();
+            // Obtener los detalles del pedido
+            String sqlGetDetalles = "SELECT detalles FROM pedidos WHERE id = :id";
+            String detallesJson = (String) session.createNativeQuery(sqlGetDetalles)
+                    .setParameter("id", id)
+                    .getSingleResult();
 
-                if (detalles.has(campo)) {
-                    System.out.print("Ingrese el nuevo valor para el campo '" + campo + "': ");
-                    String nuevoValor = scanner.nextLine();
+            // Convertir detalles a JsonNode
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode detalles = objectMapper.readTree(detallesJson);
 
-                    ((ObjectNode) detalles).put(campo, nuevoValor);
-                    pedido.setDetalles(detalles);
-                    session.merge(pedido);
-                    System.out.println("Campo '" + campo + "' modificado exitosamente.");
-                } else {
-                    System.out.println("El campo '" + campo + "' no existe en el JSONB.");
-                }
-            } else {
-                System.out.println("No se encontró el pedido con ID " + id);
+            // Mostrar campos disponibles en un menú numerado
+            System.out.println("\nCampos disponibles en el JSONB del pedido:");
+            List<String> campos = new ArrayList<>();
+            detalles.fieldNames().forEachRemaining(campos::add);
+
+            for (int i = 0; i < campos.size(); i++) {
+                System.out.println((i + 1) + ": " + campos.get(i));
             }
-            session.getTransaction().commit();
+
+            // Solicitar al usuario que elija un campo
+            System.out.print("Seleccione el número del campo que desea modificar: ");
+            int opcionCampo = scanner.nextInt();
+            scanner.nextLine(); // Consumir el salto de línea
+
+            if (opcionCampo < 1 || opcionCampo > campos.size()) {
+                System.out.println("Opción no válida.");
+                session.getTransaction().rollback();
+                return;
+            }
+
+            String campoSeleccionado = campos.get(opcionCampo - 1);
+
+            // Solicitar el nuevo valor
+            System.out.print("Ingrese el nuevo valor para el campo '" + campoSeleccionado + "': ");
+            String nuevoValor = scanner.nextLine();
+
+            // Construir la ruta en formato ARRAY de texto
+            String rutaJsonb = "ARRAY['" + campoSeleccionado + "']";
+
+            // Sentencia SQL para actualizar el campo en JSONB
+            String sqlUpdate = "UPDATE pedidos SET detalles = jsonb_set(detalles, " + rutaJsonb + ", to_jsonb(:nuevoValor)) WHERE id = :id";
+            Query query = session.createNativeQuery(sqlUpdate);
+            query.setParameter("nuevoValor", nuevoValor);
+            query.setParameter("id", id);
+
+            // Ejecutar la actualización
+            int filasActualizadas = query.executeUpdate();
+            System.out.println("Filas afectadas: " + filasActualizadas);
+
+            session.getTransaction().commit(); // Confirmar transacción
+            System.out.println("Campo '" + campoSeleccionado + "' modificado exitosamente.");
         } catch (Exception e) {
             if (session.getTransaction() != null) {
-                session.getTransaction().rollback();
+                session.getTransaction().rollback(); // Revertir en caso de error
             }
             System.err.println("Error al modificar el campo JSONB: " + e.getMessage());
             e.printStackTrace();
@@ -207,34 +245,62 @@ public class MenuInteractivo {
 
     private static void modificarJsonbDeProducto(Session session, Long id, Scanner scanner) {
         try {
-            session.beginTransaction();
-            Producto producto = session.get(Producto.class, id);
-            if (producto != null) {
-                JsonNode especificaciones = producto.getEspecificaciones();
-                System.out.println("\nCampos disponibles en el JSONB del producto:");
-                especificaciones.fieldNames().forEachRemaining(System.out::println);
+            session.beginTransaction(); // Iniciar transacción
 
-                System.out.print("Ingrese el nombre del campo que desea modificar: ");
-                String campo = scanner.nextLine();
+            // Obtener las especificaciones del producto
+            String sqlGetEspecificaciones = "SELECT especificaciones FROM productos WHERE id = :id";
+            String especificacionesJson = (String) session.createNativeQuery(sqlGetEspecificaciones)
+                    .setParameter("id", id)
+                    .getSingleResult();
 
-                if (especificaciones.has(campo)) {
-                    System.out.print("Ingrese el nuevo valor para el campo '" + campo + "': ");
-                    String nuevoValor = scanner.nextLine();
+            // Convertir especificaciones a JsonNode
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode especificaciones = objectMapper.readTree(especificacionesJson);
 
-                    ((ObjectNode) especificaciones).put(campo, nuevoValor);
-                    producto.setEspecificaciones(especificaciones);
-                    session.merge(producto);
-                    System.out.println("Campo '" + campo + "' modificado exitosamente.");
-                } else {
-                    System.out.println("El campo '" + campo + "' no existe en el JSONB.");
-                }
-            } else {
-                System.out.println("No se encontró el producto con ID " + id);
+            // Mostrar campos disponibles en un menú numerado
+            System.out.println("\nCampos disponibles en el JSONB del producto:");
+            List<String> campos = new ArrayList<>();
+            especificaciones.fieldNames().forEachRemaining(campos::add);
+
+            for (int i = 0; i < campos.size(); i++) {
+                System.out.println((i + 1) + ": " + campos.get(i));
             }
-            session.getTransaction().commit();
+
+            // Solicitar al usuario que elija un campo
+            System.out.print("Seleccione el número del campo que desea modificar: ");
+            int opcionCampo = scanner.nextInt();
+            scanner.nextLine(); // Consumir el salto de línea
+
+            if (opcionCampo < 1 || opcionCampo > campos.size()) {
+                System.out.println("Opción no válida.");
+                session.getTransaction().rollback();
+                return;
+            }
+
+            String campoSeleccionado = campos.get(opcionCampo - 1);
+
+            // Solicitar el nuevo valor
+            System.out.print("Ingrese el nuevo valor para el campo '" + campoSeleccionado + "': ");
+            String nuevoValor = scanner.nextLine();
+
+            // Construir la ruta en formato ARRAY de texto
+            String rutaJsonb = "ARRAY['" + campoSeleccionado + "']";
+
+            // Sentencia SQL para actualizar el campo en JSONB
+            String sqlUpdate = "UPDATE productos SET especificaciones = jsonb_set(especificaciones, " + rutaJsonb + ", to_jsonb(:nuevoValor)) WHERE id = :id";
+            Query query = session.createNativeQuery(sqlUpdate);
+            query.setParameter("nuevoValor", nuevoValor);
+            query.setParameter("id", id);
+
+            // Ejecutar la actualización
+            int filasActualizadas = query.executeUpdate();
+            System.out.println("Filas afectadas: " + filasActualizadas);
+
+            session.getTransaction().commit(); // Confirmar transacción
+            System.out.println("Campo '" + campoSeleccionado + "' modificado exitosamente.");
         } catch (Exception e) {
             if (session.getTransaction() != null) {
-                session.getTransaction().rollback();
+                session.getTransaction().rollback(); // Revertir en caso de error
             }
             System.err.println("Error al modificar el campo JSONB: " + e.getMessage());
             e.printStackTrace();
@@ -265,31 +331,57 @@ public class MenuInteractivo {
 
     private static void eliminarClaveJsonbDePedido(Session session, Long id, Scanner scanner) {
         try {
-            session.beginTransaction();
-            Pedido pedido = session.get(Pedido.class, id);
-            if (pedido != null) {
-                JsonNode detalles = pedido.getDetalles();
-                System.out.println("\nCampos disponibles en el JSONB del pedido:");
-                detalles.fieldNames().forEachRemaining(System.out::println);
+            session.beginTransaction(); // Iniciar transacción
 
-                System.out.print("Ingrese el nombre del campo que desea eliminar: ");
-                String campo = scanner.nextLine();
+            // Obtener los detalles del pedido
+            String sqlGetDetalles = "SELECT detalles FROM pedidos WHERE id = :id";
+            String detallesJson = (String) session.createNativeQuery(sqlGetDetalles)
+                    .setParameter("id", id)
+                    .getSingleResult();
 
-                if (detalles.has(campo)) {
-                    ((ObjectNode) detalles).remove(campo);
-                    pedido.setDetalles(detalles);
-                    session.merge(pedido);
-                    System.out.println("Campo '" + campo + "' eliminado exitosamente.");
-                } else {
-                    System.out.println("El campo '" + campo + "' no existe en el JSONB.");
-                }
-            } else {
-                System.out.println("No se encontró el pedido con ID " + id);
+            // Convertir detalles a JsonNode
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode detalles = objectMapper.readTree(detallesJson);
+
+            // Mostrar campos disponibles en un menú numerado
+            System.out.println("\nCampos disponibles en el JSONB del pedido:");
+            List<String> campos = new ArrayList<>();
+            detalles.fieldNames().forEachRemaining(campos::add);
+
+            for (int i = 0; i < campos.size(); i++) {
+                System.out.println((i + 1) + ": " + campos.get(i));
             }
-            session.getTransaction().commit();
+
+            // Solicitar al usuario que elija un campo
+            System.out.print("Seleccione el número del campo que desea eliminar: ");
+            int opcionCampo = scanner.nextInt();
+            scanner.nextLine(); // Consumir el salto de línea
+
+            if (opcionCampo < 1 || opcionCampo > campos.size()) {
+                System.out.println("Opción no válida.");
+                session.getTransaction().rollback();
+                return;
+            }
+
+            String campoSeleccionado = campos.get(opcionCampo - 1);
+
+            // Construir la ruta en formato ARRAY de texto
+            String rutaJsonb = "ARRAY['" + campoSeleccionado + "']";
+
+            // Sentencia SQL para eliminar el campo en JSONB
+            String sqlUpdate = "UPDATE pedidos SET detalles = detalles #- " + rutaJsonb + " WHERE id = :id";
+            Query query = session.createNativeQuery(sqlUpdate);
+            query.setParameter("id", id);
+
+            // Ejecutar la actualización
+            int filasActualizadas = query.executeUpdate();
+            System.out.println("Filas afectadas: " + filasActualizadas);
+
+            session.getTransaction().commit(); // Confirmar transacción
+            System.out.println("Campo '" + campoSeleccionado + "' eliminado exitosamente.");
         } catch (Exception e) {
             if (session.getTransaction() != null) {
-                session.getTransaction().rollback();
+                session.getTransaction().rollback(); // Revertir en caso de error
             }
             System.err.println("Error al eliminar la clave JSONB: " + e.getMessage());
             e.printStackTrace();
@@ -298,31 +390,57 @@ public class MenuInteractivo {
 
     private static void eliminarClaveJsonbDeProducto(Session session, Long id, Scanner scanner) {
         try {
-            session.beginTransaction();
-            Producto producto = session.get(Producto.class, id);
-            if (producto != null) {
-                JsonNode especificaciones = producto.getEspecificaciones();
-                System.out.println("\nCampos disponibles en el JSONB del producto:");
-                especificaciones.fieldNames().forEachRemaining(System.out::println);
+            session.beginTransaction(); // Iniciar transacción
 
-                System.out.print("Ingrese el nombre del campo que desea eliminar: ");
-                String campo = scanner.nextLine();
+            // Obtener las especificaciones del producto
+            String sqlGetEspecificaciones = "SELECT especificaciones FROM productos WHERE id = :id";
+            String especificacionesJson = (String) session.createNativeQuery(sqlGetEspecificaciones)
+                    .setParameter("id", id)
+                    .getSingleResult();
 
-                if (especificaciones.has(campo)) {
-                    ((ObjectNode) especificaciones).remove(campo);
-                    producto.setEspecificaciones(especificaciones);
-                    session.merge(producto);
-                    System.out.println("Campo '" + campo + "' eliminado exitosamente.");
-                } else {
-                    System.out.println("El campo '" + campo + "' no existe en el JSONB.");
-                }
-            } else {
-                System.out.println("No se encontró el producto con ID " + id);
+            // Convertir especificaciones a JsonNode
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode especificaciones = objectMapper.readTree(especificacionesJson);
+
+            // Mostrar campos disponibles en un menú numerado
+            System.out.println("\nCampos disponibles en el JSONB del producto:");
+            List<String> campos = new ArrayList<>();
+            especificaciones.fieldNames().forEachRemaining(campos::add);
+
+            for (int i = 0; i < campos.size(); i++) {
+                System.out.println((i + 1) + ": " + campos.get(i));
             }
-            session.getTransaction().commit();
+
+            // Solicitar al usuario que elija un campo
+            System.out.print("Seleccione el número del campo que desea eliminar: ");
+            int opcionCampo = scanner.nextInt();
+            scanner.nextLine(); // Consumir el salto de línea
+
+            if (opcionCampo < 1 || opcionCampo > campos.size()) {
+                System.out.println("Opción no válida.");
+                session.getTransaction().rollback();
+                return;
+            }
+
+            String campoSeleccionado = campos.get(opcionCampo - 1);
+
+            // Construir la ruta en formato ARRAY de texto
+            String rutaJsonb = "ARRAY['" + campoSeleccionado + "']";
+
+            // Sentencia SQL para eliminar el campo en JSONB
+            String sqlUpdate = "UPDATE productos SET especificaciones = especificaciones #- " + rutaJsonb + " WHERE id = :id";
+            Query query = session.createNativeQuery(sqlUpdate);
+            query.setParameter("id", id);
+
+            // Ejecutar la actualización
+            int filasActualizadas = query.executeUpdate();
+            System.out.println("Filas afectadas: " + filasActualizadas);
+
+            session.getTransaction().commit(); // Confirmar transacción
+            System.out.println("Campo '" + campoSeleccionado + "' eliminado exitosamente.");
         } catch (Exception e) {
             if (session.getTransaction() != null) {
-                session.getTransaction().rollback();
+                session.getTransaction().rollback(); // Revertir en caso de error
             }
             System.err.println("Error al eliminar la clave JSONB: " + e.getMessage());
             e.printStackTrace();
@@ -334,32 +452,40 @@ public class MenuInteractivo {
             session.beginTransaction();
 
             // Obtener todos los pedidos
-            List<Pedido> pedidos = session.createQuery("FROM Pedido", Pedido.class).getResultList();
+            String sqlGetPedidos = "SELECT * FROM pedidos";
+            List<Object[]> pedidos = session.createNativeQuery(sqlGetPedidos).getResultList();
 
             if (pedidos.isEmpty()) {
                 System.out.println("\nNo hay pedidos registrados.");
             } else {
                 System.out.println("\n--- Lista de Pedidos ---");
-                for (Pedido pedido : pedidos) {
+                for (Object[] pedido : pedidos) {
                     // Mostrar detalles del pedido
-                    System.out.println("\nPedido ID: " + pedido.getId());
-                    System.out.println("Cliente: " + pedido.getCliente());
-                    System.out.println("Fecha: " + pedido.getFecha());
-                    System.out.println("Detalles: " + pedido.getDetalles());
+                    System.out.println("\nPedido ID: " + pedido[0]);
+                    System.out.println("Cliente: " + pedido[1]);
+                    System.out.println("Fecha: " + pedido[2]);
+                    System.out.println("Detalles: " + pedido[3]);
+
+                    // Obtener productos asociados al pedido
+                    String sqlGetProductosEnPedido = "SELECT p.id, p.nombre, p.precio, p.especificaciones, pp.cantidad "
+                            + "FROM productos p "
+                            + "JOIN pedido_producto pp ON p.id = pp.producto_id "
+                            + "WHERE pp.pedido_id = :pedidoId";
+                    List<Object[]> productosEnPedido = session.createNativeQuery(sqlGetProductosEnPedido)
+                            .setParameter("pedidoId", pedido[0])
+                            .getResultList();
 
                     // Mostrar productos asociados al pedido
                     System.out.println("Productos en el pedido:");
-                    Set<PedidoProducto> productosEnPedido = pedido.getProductos();
                     if (productosEnPedido.isEmpty()) {
                         System.out.println("  - No hay productos en este pedido.");
                     } else {
-                        for (PedidoProducto pp : productosEnPedido) {
-                            Producto producto = pp.getProducto();
-                            System.out.println("  - Producto ID: " + producto.getId());
-                            System.out.println("    Nombre: " + producto.getNombre());
-                            System.out.println("    Precio: " + producto.getPrecio());
-                            System.out.println("    Especificaciones: " + producto.getEspecificaciones());
-                            System.out.println("    Cantidad: " + pp.getCantidad());
+                        for (Object[] producto : productosEnPedido) {
+                            System.out.println("  - Producto ID: " + producto[0]);
+                            System.out.println("    Nombre: " + producto[1]);
+                            System.out.println("    Precio: " + producto[2]);
+                            System.out.println("    Especificaciones: " + producto[3]);
+                            System.out.println("    Cantidad: " + producto[4]);
                         }
                     }
                 }
