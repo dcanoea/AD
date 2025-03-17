@@ -126,7 +126,8 @@ public class MenuInteractivo {
                 String especificacionesJson = objectMapper.writeValueAsString(especificaciones);
 
                 // Insertar el producto usando SQL con conversión explícita a jsonb
-                String sqlInsertProducto = "INSERT INTO productos (nombre, precio, especificaciones) VALUES (:nombre, :precio, CAST(:especificaciones AS jsonb))";
+                String sqlInsertProducto = "INSERT INTO productos (nombre, precio, especificaciones) "
+                        + "VALUES (:nombre, :precio, CAST(:especificaciones AS jsonb))";
                 session.createNativeQuery(sqlInsertProducto)
                         .setParameter("nombre", nombre)
                         .setParameter("precio", precio)
@@ -138,7 +139,8 @@ public class MenuInteractivo {
                 Long productoId = (Long) session.createNativeQuery(sqlGetLastProductoId).getSingleResult();
 
                 // Asociar producto al pedido
-                String sqlInsertPedidoProducto = "INSERT INTO pedido_producto (pedido_id, producto_id, cantidad) VALUES (:pedidoId, :productoId, :cantidad)";
+                String sqlInsertPedidoProducto = "INSERT INTO pedido_producto (pedido_id, producto_id, cantidad) "
+                        + "VALUES (:pedidoId, :productoId, :cantidad)";
                 session.createNativeQuery(sqlInsertPedidoProducto)
                         .setParameter("pedidoId", pedidoId)
                         .setParameter("productoId", productoId)
@@ -287,7 +289,8 @@ public class MenuInteractivo {
             String rutaJsonb = "ARRAY['" + campoSeleccionado + "']";
 
             // Sentencia SQL para actualizar el campo en JSONB
-            String sqlUpdate = "UPDATE productos SET especificaciones = jsonb_set(especificaciones, " + rutaJsonb + ", to_jsonb(:nuevoValor)) WHERE id = :id";
+            String sqlUpdate = "UPDATE productos SET especificaciones = jsonb_set(especificaciones, " + rutaJsonb 
+                    + ", to_jsonb(:nuevoValor)) WHERE id = :id";
             Query query = session.createNativeQuery(sqlUpdate);
             query.setParameter("nuevoValor", nuevoValor);
             query.setParameter("id", id);
