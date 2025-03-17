@@ -87,8 +87,8 @@ public class MenuInteractivo {
             ObjectMapper objectMapper = new ObjectMapper();
             String detallesJson = objectMapper.writeValueAsString(detalles);
 
-            // Insertar el pedido usando SQL
-            String sqlInsertPedido = "INSERT INTO pedidos (cliente, detalles) VALUES (:cliente, :detalles)";
+            // Insertar el pedido usando SQL con conversión explícita a jsonb
+            String sqlInsertPedido = "INSERT INTO pedidos (cliente, detalles) VALUES (:cliente, CAST(:detalles AS jsonb))";
             session.createNativeQuery(sqlInsertPedido)
                     .setParameter("cliente", cliente)
                     .setParameter("detalles", detallesJson)
@@ -125,8 +125,8 @@ public class MenuInteractivo {
                 // Convertir especificaciones a JSON
                 String especificacionesJson = objectMapper.writeValueAsString(especificaciones);
 
-                // Insertar el producto usando SQL
-                String sqlInsertProducto = "INSERT INTO productos (nombre, precio, especificaciones) VALUES (:nombre, :precio, :especificaciones)";
+                // Insertar el producto usando SQL con conversión explícita a jsonb
+                String sqlInsertProducto = "INSERT INTO productos (nombre, precio, especificaciones) VALUES (:nombre, :precio, CAST(:especificaciones AS jsonb))";
                 session.createNativeQuery(sqlInsertProducto)
                         .setParameter("nombre", nombre)
                         .setParameter("precio", precio)
