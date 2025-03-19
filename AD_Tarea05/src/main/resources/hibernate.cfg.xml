@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <!-- Configuración de la conexión a PostgreSQL -->
+        <property name="hibernate.connection.driver_class">org.postgresql.Driver</property>
+        <property name="hibernate.connection.url">jdbc:postgresql://localhost:5432/tienda</property>
+        <property name="hibernate.connection.username">postgres</property>
+        <property name="hibernate.connection.password">admin</property>
+
+        <!-- Dialecto de PostgreSQL -->
+        <property name="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</property>
+
+        <!-- Configuración del esquema de la base de datos -->
+        <property name="hibernate.hbm2ddl.auto">update</property>
+
+        <!-- Configuración de logging (opcional) Con esto consigo que no se vean las consultas por consola -->
+        <property name="hibernate.show_sql">false</property>
+
+        <!-- Mapeo de entidades -->
+        <mapping class="com.tienda.modelo.Producto"/>
+        <mapping class="com.tienda.modelo.Pedido"/>
+        <mapping class="com.tienda.modelo.PedidoProducto"/> 
+        
+    </session-factory>
+</hibernate-configuration>
