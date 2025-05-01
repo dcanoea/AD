@@ -31,6 +31,8 @@ public class TermostatoVisual extends JPanel implements Serializable {
     private boolean estadoCritico = false;
     private JDialog dialogoAlerta;
 
+    
+    //Constructor sin parametros
     public TermostatoVisual() {
         inicializarComponentes();
         configurarEventos();
@@ -71,6 +73,8 @@ public class TermostatoVisual extends JPanel implements Serializable {
         });
     }
 
+    
+    //getters y setters
     public int getTemperaturaActual() {
         return temperaturaActual;
     }
