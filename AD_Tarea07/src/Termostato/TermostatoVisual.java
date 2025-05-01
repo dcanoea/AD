@@ -1,60 +1,107 @@
-package Termostato;
-
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
-/**
- *
- * @author David Cano Escario
- */
-
-
 import javax.swing.*;
 import java.awt.*;
 import java.beans.*;
 import java.io.Serializable;
 
 public class TermostatoVisual extends JPanel implements Serializable {
-    private int temperaturaActual = 20;
+
+    // Propiedades del JavaBean
+    private int temperaturaActual = 0;
     private int temperaturaLimite = 50;
     private boolean estadoCritico = false;
-    private JDialog alertaDialog;
 
-    private final JProgressBar progressBar = new JProgressBar(0, 100);
-    private final JLabel labelTemp = new JLabel(temperaturaActual + "°C");
-    private final JSlider slider = new JSlider(0, 100, temperaturaActual);
-    private final JTextField textFieldLimite = new JTextField(String.valueOf(temperaturaLimite));
+    // Componentes gráficos
+    private JProgressBar jProgressBar;
+    private JLabel jLabel;
+    private JSlider jSlider;
+    private JTextField jTextField;
 
+    // Constructor sin parámetros
     public TermostatoVisual() {
-        setLayout(new GridLayout(4, 1));
-        add(progressBar);
-        add(labelTemp);
-        add(slider);
-        add(textFieldLimite);
-
-        progressBar.setValue(temperaturaActual);
-
-        slider.addChangeListener(e -> setTemperaturaActual(slider.getValue()));
-        textFieldLimite.addActionListener(e -> {
-            try {
-                setTemperaturaLimite(Integer.parseInt(textFieldLimite.getText()));
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Límite inválido");
-            }
-        });
+        initComponents();
     }
+
+    // Inicializa los componentes
+    private void initComponents() {
+        jProgressBar = new JProgressBar();
+        jLabel = new JLabel("Temperatura: 0°C");
+        jSlider = new JSlider(0, 100, 0);
+        jTextField = new JTextField("50");
+
+        setLayout(new GridLayout(4, 1));
+
+        // JProgressBar setup
+        jProgressBar.setMaximum(100);
+        jProgressBar.setValue(temperaturaActual);
+        jProgressBar.setStringPainted(true);
+
+        // JSlider setup
+        jSlider.setValue(temperaturaActual);
+        jSlider.setMajorTickSpacing(10);
+        jSlider.setMinorTickSpacing(1);
+        jSlider.setPaintTicks(true);
+        jSlider.setPaintLabels(true);
+
+        jSlider.addChangeListener(e -> {
+            setTemperaturaActual(jSlider.getValue());
+            actualizarTemperatura();
+        });
+
+        // JTextField setup
+        jTextField.setColumns(5);
+        jTextField.addActionListener(e -> {
+            setTemperaturaLimite(Integer.parseInt(jTextField.getText()));
+        });
+
+        // Añadir componentes al panel
+        add(jLabel);
+        add(jProgressBar);
+        add(jSlider);
+        add(jTextField);
+    }
+
+    // Método para actualizar la temperatura y verificar si está en estado crítico
+    private void actualizarTemperatura() {
+        jLabel.setText("Temperatura: " + temperaturaActual + "°C");
+        jProgressBar.setValue(temperaturaActual);
+
+        if (temperaturaActual > temperaturaLimite && !estadoCritico) {
+            mostrarAlerta();
+            estadoCritico = true;
+        } else if (temperaturaActual <= temperaturaLimite && estadoCritico) {
+            mostrarNormal();
+            estadoCritico = false;
+        }
+    }
+
+    // Método para mostrar un diálogo de alerta no modal
+    private void mostrarAlerta() {
+        JOptionPane.getFrameForComponent(this); // Se obtiene el frame
+        JDialog alerta = new JDialog();
+        alerta.setTitle("Alerta: Temperatura Crítica");
+        alerta.setSize(200, 100);
+        alerta.setLocationRelativeTo(this);
+        alerta.setModal(false);  // No modal
+        alerta.add(new JLabel("¡Temperatura Crítica!"));
+        alerta.setVisible(true);
+    }
+
+    // Método para mostrar un mensaje modal cuando la temperatura vuelve a la normalidad
+    private void mostrarNormal() {
+        JOptionPane.showMessageDialog(this, "La temperatura ha vuelto a la normalidad.");
+    }
+
+    // Métodos getter y setter para las propiedades
 
     public int getTemperaturaActual() {
         return temperaturaActual;
     }
 
     public void setTemperaturaActual(int temperaturaActual) {
+        int oldTemperatura = this.temperaturaActual;
         this.temperaturaActual = temperaturaActual;
-        labelTemp.setText(temperaturaActual + "°C");
-        progressBar.setValue(temperaturaActual);
-        checkEstado();
+        firePropertyChange("temperaturaActual", oldTemperatura, temperaturaActual);
+        actualizarTemperatura();
     }
 
     public int getTemperaturaLimite() {
@@ -62,30 +109,9 @@ public class TermostatoVisual extends JPanel implements Serializable {
     }
 
     public void setTemperaturaLimite(int temperaturaLimite) {
+        int oldLimite = this.temperaturaLimite;
         this.temperaturaLimite = temperaturaLimite;
-        textFieldLimite.setText(String.valueOf(temperaturaLimite));
-        checkEstado();
-    }
-
-    private void checkEstado() {
-        if (temperaturaActual > temperaturaLimite) {
-            if (!estadoCritico) {
-                estadoCritico = true;
-                alertaDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "¡Alerta!", false);
-                alertaDialog.add(new JLabel("          Temperatura crítica: " + temperaturaActual + "°C"));
-                alertaDialog.setSize(250, 100);
-                alertaDialog.setLocationRelativeTo(this);
-                alertaDialog.setVisible(true);
-            }
-        } else {
-            if (estadoCritico) {
-                estadoCritico = false;
-                if (alertaDialog != null) {
-                    alertaDialog.setVisible(false);
-                    alertaDialog.dispose();
-                }
-                JOptionPane.showMessageDialog(this, "Temperatura normalizada: " + temperaturaActual + "°C");
-            }
-        }
+        firePropertyChange("temperaturaLimite", oldLimite, temperaturaLimite);
+        actualizarTemperatura();
     }
 }
